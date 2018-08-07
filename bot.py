@@ -1,17 +1,12 @@
-import os
 import time
 import re
 import schedule
 from slackclient import SlackClient
-from tweepy.streaming import json
-from twit import tweet
 import tweepy
 from config import SLACK_API_TOKEN, bot_token, consumer_key, consumer_secret, access_token, access_token_secret
 
 
 slack_client = SlackClient(bot_token)
-
-
 starterbot_id = None
 RTM_READ_DELAY = 1  # 1 second delay between reading from RTM
 EXAMPLE_COMMAND = "trending"
@@ -38,8 +33,8 @@ def trending():
     api = tweepy.API(auth)
 
     dictionary = {}
-    #tweets = api.trends_place(1187115)
-    tweets = tweet
+    tweets = api.trends_place(1187115)
+    #tweets = tweet
 
     temp1_trend = tweets[0]
     temp2_trend = temp1_trend['trends']
@@ -61,7 +56,7 @@ def send():
         text=message
     )
 
-def h_command(command, channel):
+def p_command(command, channel):
 
     default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
 
@@ -78,20 +73,16 @@ def h_command(command, channel):
 
 if __name__ == "__main__":
     if slack_client.rtm_connect(with_team_state=False):
-        print("Starter Bot connected and running!")
-    print trending()
+        print("Twitter Bot running and ready!")
     starterbot_id = slack_client.api_call("auth.test")["user_id"]
-    schedule.every().day.at("21:05").do(send)
-    parsed = json.dumps(tweet, indent=4, sort_keys=True)
-    print parsed
+    schedule.every().day.at("23:30").do(send)
+    
     while True:
         schedule.run_pending()
         time.sleep(1)
         command, channel = bot_commands(slack_client.rtm_read())
         if command:
-            print(command)
-            print "command read"
-            h_command(command, channel)
+            p_command(command.lower(), channel)
         time.sleep(RTM_READ_DELAY)
     else:
         print("Connection failed. Exception traceback printed above.")
