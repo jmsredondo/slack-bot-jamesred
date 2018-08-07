@@ -48,7 +48,7 @@ def trending():
 
 def send():
     message = trending()
-    chan = "general"
+    chan = "assignment1"
     slack_client.api_call(
         "chat.postMessage",
         channel=chan,
