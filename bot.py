@@ -34,7 +34,6 @@ def trending():
 
     dictionary = {}
     tweets = api.trends_place(1187115)
-    #tweets = tweet
 
     temp1_trend = tweets[0]
     temp2_trend = temp1_trend['trends']
@@ -49,7 +48,7 @@ def trending():
 
 def send():
     message = trending()
-    chan = "test2"
+    chan = "general"
     slack_client.api_call(
         "chat.postMessage",
         channel=chan,
@@ -75,7 +74,9 @@ if __name__ == "__main__":
     if slack_client.rtm_connect(with_team_state=False):
         print("Twitter Bot running and ready!")
     starterbot_id = slack_client.api_call("auth.test")["user_id"]
-    schedule.every().day.at("23:30").do(send)
+    schedule.every().day.at("9:30").do(send)
+    schedule.every().day.at("21:30").do(send)
+
     
     while True:
         schedule.run_pending()
