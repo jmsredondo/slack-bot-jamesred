@@ -33,27 +33,37 @@ def trending():
     api = tweepy.API(auth)
 
     dictionary = {}
-    tweets = api.trends_place(1187115)
+    #WOEID is on global
+    tweets = api.trends_place(1)
+    top_ten = []
 
     temp1_trend = tweets[0]
     temp2_trend = temp1_trend['trends']
-    for trend in temp2_trend:
-        dictionary[trend['tweet_volume']] =  "> " + trend['name']
-    sorted_trend = [value for (key, value) in sorted(dictionary.items(), reverse=True)]
-    top_ten = sorted_trend[:10]
+    temp_date = temp1_trend['created_at']
+    temp = sorted(temp2_trend, key=lambda x: x['tweet_volume'], reverse= True)
+    for a in temp[:10]:
+        top_ten.append("> " + a['name'])
     p_trends =  "\n".join(top_ten)
-    return "*Top 10 Trending on Twitter*\n" +  p_trends
+    return "*Top 10 World Wide Trending on Twitter* \n" +  p_trends
 
 
 
-def send():
+def send_trending():
     message = trending()
-    chan = "assignment1"
+    channel = "assignment1"
+    send(message , channel)
+
+def send(message, channel):
     slack_client.api_call(
         "chat.postMessage",
-        channel=chan,
+        channel=channel,
         text=message
     )
+
+def send_instructions():
+    message = "Hi I am *Twitterbot*\n> I can display the top 10 World Wide Trending on Twitter\n> The keyword is: *trending* \n>e.g. _@twitterbot_ *trending*"
+    channel = "assignment1"
+    send(message, channel)
 
 def p_command(command, channel):
 
@@ -62,28 +72,28 @@ def p_command(command, channel):
     response = None
     if command.startswith(EXAMPLE_COMMAND):
         response = trending()
-
-    slack_client.api_call(
-        "chat.postMessage",
-        channel=channel,
-        text=response or default_response
-    )
+    send(response or default_response, channel)
 
 
 if __name__ == "__main__":
     if slack_client.rtm_connect(with_team_state=False):
         print("Twitter Bot running and ready!")
-    starterbot_id = slack_client.api_call("auth.test")["user_id"]
-    schedule.every().day.at("9:30").do(send)
-    schedule.every().day.at("21:30").do(send)
+        starterbot_id = slack_client.api_call("auth.test")["user_id"]
+        #schedule to post at 9:30 am
+        schedule.every().day.at("9:30").do(send_trending)
+        #schedule to post at 9:30 pm
+        schedule.every().day.at("21:30").do(send_trending)
+        #schedule to post every 10 minutes
+        #schedule.every(10).minutes.do(send_trending)
+        send_instructions()
 
     
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-        command, channel = bot_commands(slack_client.rtm_read())
-        if command:
-            p_command(command.lower(), channel)
-        time.sleep(RTM_READ_DELAY)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+            command, channel = bot_commands(slack_client.rtm_read())
+            if command:
+                p_command(command.lower(), channel)
+            time.sleep(RTM_READ_DELAY)
     else:
         print("Connection failed. Exception traceback printed above.")
